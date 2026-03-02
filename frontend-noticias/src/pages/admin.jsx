@@ -103,14 +103,14 @@ function Admin() {
         await clienteAxios.put(`/noticias/${noticiaEditando}`, datos, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        alert("¡Noticia actualizada con éxito! ✏️");
+        alert("¡Noticia actualizada con exito!");
 
         setNoticiaEditando(null);
       } else {
         await clienteAxios.post("/noticias", datos, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        alert("¡Noticia publicada con éxito! ✅");
+        alert("¡Noticia publicada con exitosamente!");
       }
 
       setFormulario({ titulo: "", resumen: "", contenido: "" });
@@ -118,8 +118,18 @@ function Admin() {
       e.target.reset();
       cargarNoticias();
     } catch (error) {
-      alert("Error al guardar. Revisa que todos los campos estén completos.");
-      console.error(error);
+      // Intentamos mostrar el mensaje real del servidor para facilitar el debug.
+      // error.response existe cuando el servidor respondió (ej: 500, 404).
+      // Si no hay respuesta (ej: servidor apagado), mostramos un mensaje de red.
+      const mensajeServidor = error.response?.data?.message;
+      const mensajeFinal = mensajeServidor
+        ? `Error del servidor: ${mensajeServidor}`
+        : "No se pudo conectar con el servidor. ¿Está corriendo el backend?";
+      alert(mensajeFinal);
+      console.error(
+        "Detalle del error:",
+        error.response?.data || error.message,
+      );
     } finally {
       setEnviando(false);
     }
@@ -149,7 +159,7 @@ function Admin() {
 
       <section className="admin-formulario">
         <h3>
-          {noticiaEditando ? "✏️ Editando Noticia" : "Publicar Nueva Noticia"}
+          {noticiaEditando ? "Editando Noticia" : "Publicar Nueva Noticia"}
         </h3>
 
         {noticiaEditando && (
