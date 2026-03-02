@@ -340,3 +340,18 @@ nav {
 .btn-eliminar:hover {
     background-color: #a93226;
 }
+
+/* ── Botón volver al inicio (en la página de login) ── */
+.btn-volver-inicio {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    color: #555;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.btn-volver-inicio:hover {
+    color: #1a1a2e;
+    text-decoration: underline;
+}

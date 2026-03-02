@@ -19,10 +19,17 @@ function Admin() {
 
   const [noticiaEditando, setNoticiaEditando] = useState(null);
 
+  // un usuario sin sesion nunca ve el contenido admin.
+  const [verificando, setVerificando] = useState(true);
+
   useEffect(() => {
     const esAdmin = localStorage.getItem("isAdmin");
     if (!esAdmin) {
+      // No hay sesion → mandamos al login
       navigate("/login");
+    } else {
+      // Sí hay sesion → liberamos el render del panel
+      setVerificando(false);
     }
   }, [navigate]);
 
@@ -118,9 +125,6 @@ function Admin() {
       e.target.reset();
       cargarNoticias();
     } catch (error) {
-      // Intentamos mostrar el mensaje real del servidor para facilitar el debug.
-      // error.response existe cuando el servidor respondió (ej: 500, 404).
-      // Si no hay respuesta (ej: servidor apagado), mostramos un mensaje de red.
       const mensajeServidor = error.response?.data?.message;
       const mensajeFinal = mensajeServidor
         ? `Error del servidor: ${mensajeServidor}`
@@ -139,6 +143,8 @@ function Admin() {
     localStorage.removeItem("isAdmin");
     navigate("/");
   };
+
+  if (verificando) return null;
 
   return (
     <div style={{ padding: "20px" }}>
@@ -210,7 +216,7 @@ function Admin() {
 
           <div className="campo">
             <label>
-              Imagen de portada {/* En modo edición avisamos que es opcional */}
+              Imagen de portada
               {noticiaEditando && (
                 <span style={{ fontWeight: "normal", color: "#888" }}>
                   (opcional: solo si quieres reemplazarla)

@@ -9,7 +9,7 @@ function App() {
       <div className="container">
         <nav>
           <h1>Sistema de Noticias</h1>
-          <Link to="/login" className="nav-link-admin">
+          <Link to="/admin" className="nav-link-admin">
             Admin
           </Link>
         </nav>
