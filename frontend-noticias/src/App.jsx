@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/home';
-import Login from './pages/login.jsx'; // Lo crearemos ahora
-import Admin from './pages/admin'; // El panel de control
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/home";
+import Login from "./pages/login";
+import Admin from "./pages/admin";
 
 function App() {
   return (
@@ -9,10 +9,9 @@ function App() {
       <div className="container">
         <nav>
           <h1>Sistema de Noticias</h1>
-          <ul>
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/login">Admin</a></li>
-          </ul>
+          <Link to="/login" className="nav-link-admin">
+            Admin
+          </Link>
         </nav>
 
         <Routes>
