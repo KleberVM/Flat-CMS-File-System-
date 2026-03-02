@@ -243,3 +243,100 @@ nav {
     background-color: #95a5a6;
     cursor: not-allowed;
 }
+
+/* ── Banner de modo edición ── */
+.banner-edicion {
+    background-color: #fff8e1;
+    border: 1px solid #f9c74f;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    color: #7d6608;
+}
+
+/* Botón pequeño dentro del banner para cancelar */
+.btn-cancelar {
+    background: none;
+    border: none;
+    color: #c0392b;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-left: 4px;
+}
+
+.btn-cancelar:hover {
+    color: #a93226;
+}
+
+/* ── Tabla de noticias ── */
+.tabla-noticias {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tabla-noticias th {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.tabla-noticias td {
+    padding: 11px 16px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.tabla-noticias tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabla-noticias tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Fila resaltada cuando esa noticia está siendo editada */
+.fila-activa {
+    background-color: #fff8e1 !important;
+    outline: 2px solid #f9c74f;
+    outline-offset: -2px;
+}
+
+/* ── Botones de acción en la tabla ── */
+.btn-editar {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.btn-editar:hover {
+    background-color: #2471a3;
+}
+
+.btn-eliminar {
+    background-color: #c0392b;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.btn-eliminar:hover {
+    background-color: #a93226;
+}

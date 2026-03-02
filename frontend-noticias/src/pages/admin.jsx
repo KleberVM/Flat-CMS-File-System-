@@ -4,6 +4,7 @@ import clienteAxios from "../api/axiosConfig";
 
 function Admin() {
   const navigate = useNavigate();
+
   const [formulario, setFormulario] = useState({
     titulo: "",
     resumen: "",
@@ -14,12 +15,29 @@ function Admin() {
 
   const [enviando, setEnviando] = useState(false);
 
+  const [noticias, setNoticias] = useState([]);
+
+  const [noticiaEditando, setNoticiaEditando] = useState(null);
+
   useEffect(() => {
     const esAdmin = localStorage.getItem("isAdmin");
     if (!esAdmin) {
       navigate("/login");
     }
   }, [navigate]);
+
+  useEffect(() => {
+    cargarNoticias();
+  }, []);
+
+  const cargarNoticias = async () => {
+    try {
+      const respuesta = await clienteAxios.get("/noticias");
+      setNoticias(respuesta.data);
+    } catch (error) {
+      console.error("Error al cargar noticias:", error);
+    }
+  };
 
   const manejarCambio = (e) => {
     setFormulario({
@@ -32,6 +50,40 @@ function Admin() {
     setImagen(e.target.files[0]);
   };
 
+  const manejarEditar = (noticia) => {
+    setNoticiaEditando(noticia.id);
+
+    setFormulario({
+      titulo: noticia.titulo,
+      resumen: noticia.resumen,
+      contenido: noticia.contenido,
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const cancelarEdicion = () => {
+    setNoticiaEditando(null);
+    setFormulario({ titulo: "", resumen: "", contenido: "" });
+    setImagen(null);
+  };
+
+  const manejarEliminar = async (id) => {
+    const confirmar = window.confirm(
+      "¿Seguro que quieres eliminar esta noticia? Esta acción no se puede deshacer.",
+    );
+    if (!confirmar) return; // Si el admin cancela, no hacemos nada
+
+    try {
+      await clienteAxios.delete(`/noticias/${id}`);
+
+      setNoticias(noticias.filter((n) => n.id !== id));
+    } catch (error) {
+      alert("Error al eliminar la noticia.");
+      console.error(error);
+    }
+  };
+
   const manejarEnvio = async (e) => {
     e.preventDefault();
 
@@ -39,25 +91,34 @@ function Admin() {
     datos.append("titulo", formulario.titulo);
     datos.append("resumen", formulario.resumen);
     datos.append("contenido", formulario.contenido);
-    datos.append("imagen", imagen);
+
+    if (imagen) {
+      datos.append("imagen", imagen);
+    }
 
     setEnviando(true);
 
     try {
-      await clienteAxios.post("/noticias", datos, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      if (noticiaEditando) {
+        await clienteAxios.put(`/noticias/${noticiaEditando}`, datos, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        alert("¡Noticia actualizada con éxito! ✏️");
 
-      alert("¡Noticia publicada con éxito!");
+        setNoticiaEditando(null);
+      } else {
+        await clienteAxios.post("/noticias", datos, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        alert("¡Noticia publicada con éxito! ✅");
+      }
 
       setFormulario({ titulo: "", resumen: "", contenido: "" });
-
       setImagen(null);
       e.target.reset();
+      cargarNoticias();
     } catch (error) {
-      alert(
-        "Error al publicar la noticia. Revisa que todos los campos estén completos.",
-      );
+      alert("Error al guardar. Revisa que todos los campos estén completos.");
       console.error(error);
     } finally {
       setEnviando(false);
@@ -87,7 +148,18 @@ function Admin() {
       <hr style={{ margin: "20px 0" }} />
 
       <section className="admin-formulario">
-        <h3>Publicar Nueva Noticia</h3>
+        <h3>
+          {noticiaEditando ? "✏️ Editando Noticia" : "Publicar Nueva Noticia"}
+        </h3>
+
+        {noticiaEditando && (
+          <div className="banner-edicion">
+            Estás modificando una noticia existente.{" "}
+            <button className="btn-cancelar" onClick={cancelarEdicion}>
+              Cancelar y volver a crear
+            </button>
+          </div>
+        )}
 
         <form onSubmit={manejarEnvio}>
           <div className="campo">
@@ -118,7 +190,7 @@ function Admin() {
             <label>Contenido completo</label>
             <textarea
               name="contenido"
-              placeholder="Aqui se escribe el articulo completo"
+              placeholder="Aquí se escribe el artículo completo..."
               value={formulario.contenido}
               onChange={manejarCambio}
               required
@@ -127,12 +199,19 @@ function Admin() {
           </div>
 
           <div className="campo">
-            <label>Imagen de portada</label>
+            <label>
+              Imagen de portada {/* En modo edición avisamos que es opcional */}
+              {noticiaEditando && (
+                <span style={{ fontWeight: "normal", color: "#888" }}>
+                  (opcional: solo si quieres reemplazarla)
+                </span>
+              )}
+            </label>
             <input
               type="file"
               accept="image/*"
               onChange={manejarImagen}
-              required
+              required={!noticiaEditando}
             />
             {imagen && (
               <small style={{ color: "green" }}>
@@ -142,9 +221,63 @@ function Admin() {
           </div>
 
           <button type="submit" className="btn-publicar" disabled={enviando}>
-            {enviando ? "Publicando..." : "Publicar Noticia"}
+            {enviando
+              ? "Guardando..."
+              : noticiaEditando
+                ? "Guardar Cambios"
+                : "Publicar Noticia"}
           </button>
         </form>
+      </section>
+
+      <hr style={{ margin: "30px 0" }} />
+
+      <section>
+        <h3>Noticias Publicadas ({noticias.length})</h3>
+
+        {noticias.length === 0 ? (
+          <p style={{ color: "#888", fontStyle: "italic" }}>
+            No hay noticias publicadas todavía.
+          </p>
+        ) : (
+          <table className="tabla-noticias">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {noticias.map((noticia) => (
+                <tr
+                  key={noticia.id}
+                  className={
+                    noticiaEditando === noticia.id ? "fila-activa" : ""
+                  }
+                >
+                  <td>{noticia.titulo}</td>
+                  <td>{noticia.fecha}</td>
+                  <td>
+                    <button
+                      className="btn-editar"
+                      onClick={() => manejarEditar(noticia)}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      className="btn-eliminar"
+                      onClick={() => manejarEliminar(noticia.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );
