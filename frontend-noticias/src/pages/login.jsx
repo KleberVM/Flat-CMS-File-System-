@@ -6,8 +6,6 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  // Si el usuario ya inicio sesión y vuelve al login
-  // lo manda directo al panel de admin sin que tenga que loguearse de nuevo
   useEffect(() => {
     if (localStorage.getItem("isAdmin")) {
       navigate("/admin");
@@ -18,12 +16,25 @@ function Login() {
     e.preventDefault();
     try {
       const respuesta = await clienteAxios.post("/auth/login", { password });
+
       if (respuesta.data.auth) {
         localStorage.setItem("isAdmin", "true");
         navigate("/admin");
+      } else {
+        alert("Contraseña incorrecta. Intenta de nuevo.");
       }
     } catch (error) {
-      alert("Contraseña incorrecta");
+      if (error.response) {
+        alert("Contraseña incorrecta.");
+      } else {
+        alert(
+          "No se pudo conectar con el servidor.\n" +
+            "Verifica que el backend esté corriendo.\n\n" +
+            "URL usada: " +
+            clienteAxios.defaults.baseURL,
+        );
+      }
+      console.error("Error en login:", error.response?.data || error.message);
     }
   };
 
