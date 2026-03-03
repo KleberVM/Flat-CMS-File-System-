@@ -1,8 +1,8 @@
 services:
-  # Servicio para el Backend (Node.js)
+  # 1. Servicio para el Backend (Node.js)
   - type: web
     name: api-noticias-flat
-    runtime: node
+    env: node 
     rootDir: noticias_api
     buildCommand: npm install
     startCommand: node server.js
@@ -12,15 +12,16 @@ services:
       - key: PORT
         value: 3000
 
-# seccion correcta para React
-staticSites:
-  - name: frontend-noticias-flat
+  # 2. Servicio para el Frontend (React)
+  - type: web 
+    name: frontend-noticias-flat
+    env: static 
     rootDir: frontend-noticias
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishDir: dist 
     envVars:
       - key: VITE_API_URL
         fromService:
           type: web
           name: api-noticias-flat
-          property: host
+          property: url 
