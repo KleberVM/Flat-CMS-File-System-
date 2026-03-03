@@ -1,6 +1,19 @@
 const { readData, writeData } = require("../utils/manejo");
-const fs = require("fs/promises");
-const path = require("path");
+const { Readable } = require("stream");
+const cloudinary = require("../utils/cloudinaryConfig");
+
+const subirACloudinary = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "noticias" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      },
+    );
+    Readable.from(buffer).pipe(stream);
+  });
+};
 
 exports.getAllNoticias = async (req, res) => {
   try {
@@ -17,12 +30,22 @@ exports.createNoticia = async (req, res) => {
     const { titulo, resumen, contenido } = req.body;
     const noticias = await readData();
 
+    let imagenUrl = null;
+    let imagenPublicId = null;
+
+    if (req.file) {
+      const resultado = await subirACloudinary(req.file.buffer);
+      imagenUrl = resultado.secure_url;
+      imagenPublicId = resultado.public_id;
+    }
+
     const nuevaNoticia = {
       id: Date.now().toString(),
       titulo,
       resumen,
       contenido,
-      imagenUrl: req.file ? `/uploads/${req.file.filename}` : null,
+      imagenUrl,
+      imagenPublicId,
       fecha: new Date().toLocaleDateString(),
     };
 
@@ -48,17 +71,20 @@ exports.updateNoticia = async (req, res) => {
       return res.status(404).json({ message: "Noticia no encontrada" });
 
     if (req.file) {
-      const antiguaImagenPath = path.join(
-        __dirname,
-        "..",
-        noticias[index].imagenUrl,
-      );
-      try {
-        await fs.unlink(antiguaImagenPath);
-      } catch (err) {
-        console.log("No se pudo borrar la imagen anterior o no existía");
+      if (noticias[index].imagenPublicId) {
+        try {
+          await cloudinary.uploader.destroy(noticias[index].imagenPublicId);
+        } catch (err) {
+          console.log(
+            "No se pudo borrar la imagen anterior de Cloudinary:",
+            err.message,
+          );
+        }
       }
-      noticias[index].imagenUrl = `/uploads/${req.file.filename}`;
+
+      const resultado = await subirACloudinary(req.file.buffer);
+      noticias[index].imagenUrl = resultado.secure_url;
+      noticias[index].imagenPublicId = resultado.public_id;
     }
 
     noticias[index] = {
@@ -88,11 +114,12 @@ exports.deleteNoticia = async (req, res) => {
     if (!noticiaABorrar)
       return res.status(404).json({ message: "Noticia no encontrada" });
 
-    const imagenPath = path.join(__dirname, "..", noticiaABorrar.imagenUrl);
-    try {
-      await fs.unlink(imagenPath);
-    } catch (err) {
-      console.log("La imagen no existia en la carpeta uploads");
+    if (noticiaABorrar.imagenPublicId) {
+      try {
+        await cloudinary.uploader.destroy(noticiaABorrar.imagenPublicId);
+      } catch (err) {
+        console.log("No se pudo borrar la imagen de Cloudinary:", err.message);
+      }
     }
 
     const noticiasFiltradas = noticias.filter((n) => n.id !== id);

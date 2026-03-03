@@ -1,26 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const noticiasController = require('../controllers/noticiasController');
-const multer = require('multer');
-const path = require('path');
+const noticiasController = require("../controllers/noticiasController");
+const multer = require("multer");
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
+// Usamos memoryStorage en vez de diskStorage.
+// Esto guarda la imagen en RAM (req.file.buffer) en vez de escribirla al disco.
+// Luego el controlador la sube a Cloudinary desde ese buffer.
+// Así no dependemos del sistema de archivos de Render (que es efímero).
+const upload = multer({ storage: multer.memoryStorage() });
 
-const upload = multer({ storage: storage });
+router.get("/", noticiasController.getAllNoticias);
 
-router.get('/', noticiasController.getAllNoticias);
+router.post("/", upload.single("imagen"), noticiasController.createNoticia);
 
-router.post('/', upload.single('imagen'), noticiasController.createNoticia);
+router.put("/:id", upload.single("imagen"), noticiasController.updateNoticia);
 
-router.put('/:id', upload.single('imagen'), noticiasController.updateNoticia);
-
-router.delete('/:id', noticiasController.deleteNoticia);
+router.delete("/:id", noticiasController.deleteNoticia);
 
 module.exports = router;
