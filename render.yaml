@@ -3,7 +3,7 @@ services:
   - type: web
     name: api-noticias-flat
     runtime: node
-    rootDir: noticias_api  # <-- nombre de carpeta backend
+    rootDir: noticias_api
     buildCommand: npm install
     startCommand: node server.js
     envVars:
@@ -12,11 +12,10 @@ services:
       - key: PORT
         value: 3000
 
-  # Servicio para el Frontend (React)
-  - type: static
-    name: frontend-noticias-flat
-    runtime: static
-    rootDir: frontend-noticias # <-- Según tu imagen
+# seccion correcta para React
+staticSites:
+  - name: frontend-noticias-flat
+    rootDir: frontend-noticias
     buildCommand: npm install && npm run build
     publishDir: dist
     envVars:
