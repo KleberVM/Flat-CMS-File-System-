@@ -1,0 +1,27 @@
+services:
+  # Servicio para el Backend (Node.js)
+  - type: web
+    name: api-noticias-flat
+    runtime: node
+    rootDir: noticias_api  # <-- nombre de carpeta backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false 
+      - key: PORT
+        value: 3000
+
+  # Servicio para el Frontend (React)
+  - type: static
+    name: frontend-noticias-flat
+    runtime: static
+    rootDir: frontend-noticias # <-- Según tu imagen
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: api-noticias-flat
+          property: host
